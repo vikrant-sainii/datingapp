@@ -1,19 +1,32 @@
 # database.py
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
-# 👇 from Render environment variable
+# -----------------------------
+# 🔐 Render / Local DB URL
+# Set DATABASE_URL in Render Dashboard
+# -----------------------------
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise Exception("❌ DATABASE_URL is missing! Add it in Render Environment Variables.")
+
+# Render uses postgres:// but SQLAlchemy needs postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# -----------------------------
+# ⚙️ SQLAlchemy Engine Setup
+# -----------------------------
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
-# Dependency to get DB session per request
+# -----------------------------
+# 📌 Dependency: Get Database Session for Routes
+# -----------------------------
 def get_db():
     db = SessionLocal()
     try:

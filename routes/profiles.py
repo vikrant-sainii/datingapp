@@ -7,6 +7,7 @@ from schemas import ProfileCreate, ProfileOut
 
 router = APIRouter(prefix="/profiles", tags=["Profiles"])
 
+# Create Profile
 @router.post("/", response_model=ProfileOut)
 def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
     p = Profile(**profile.dict())
@@ -15,6 +16,7 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
     db.refresh(p)
     return p
 
+# Get Profile by ID
 @router.get("/{user_id}", response_model=ProfileOut)
 def get_profile(user_id: str, db: Session = Depends(get_db)):
     p = db.query(Profile).filter(Profile.id == user_id).first()
@@ -22,6 +24,7 @@ def get_profile(user_id: str, db: Session = Depends(get_db)):
         return {"error": "Profile not found"}
     return p
 
+# List All Profiles
 @router.get("/")
 def list_profiles(db: Session = Depends(get_db)):
     return db.query(Profile).all()
