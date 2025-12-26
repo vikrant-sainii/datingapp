@@ -1,33 +1,30 @@
-# routes/chats.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models import ChatMessage, Mutual
 from database import get_db
 
 router = APIRouter(prefix="/chats", tags=["Chats"])
 
-# Send Chat Message
 @router.post("/send")
 def send_message(senderId: str, receiverId: str, text: str, db: Session = Depends(get_db)):
-    # Check if users are mutual
-    is_mutual = db.query(Mutual).filter(
+    mutual = db.query(Mutual).filter(
         ((Mutual.userA == senderId) & (Mutual.userB == receiverId)) |
         ((Mutual.userA == receiverId) & (Mutual.userB == senderId))
     ).first()
 
-    if not is_mutual:
-        return {"error": "Not matched yet. Chat locked 🔒"}
+    if not mutual:
+        raise HTTPException(403, "Not matched yet 🔒")
 
     roomId = "_".join(sorted([senderId, receiverId]))
-    message = ChatMessage(roomId=roomId, senderId=senderId, receiverId=receiverId, text=text)
-    db.add(message)
+    msg = ChatMessage(roomId=roomId, senderId=senderId, receiverId=receiverId, text=text)
+    db.add(msg)
     db.commit()
-    db.refresh(message)
+    db.refresh(msg)
+    return {"message": "💬 delivered", "roomId": roomId}
 
-    return {"message": "Message sent 💬"}
 
-# Get Chat History
 @router.get("/{userA}/{userB}")
 def get_chat(userA: str, userB: str, db: Session = Depends(get_db)):
     roomId = "_".join(sorted([userA, userB]))
-    return db.query(ChatMessage).filter(ChatMessage.roomId == roomId).all()
+    msgs = db.query(ChatMessage).filter(ChatMessage.roomId == roomId).all()
+    return msgs

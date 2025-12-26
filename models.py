@@ -15,19 +15,29 @@ class HeartStatus(str, enum.Enum):
     declined = "declined"
 
 
-# ---------- PROFILE MODEL ----------
+# ---------- PROFILE MODEL (FULL) ----------
 class Profile(Base):
     __tablename__ = "profiles"
 
-    id = Column(String, primary_key=True, index=True)  # same as app userId
+    id = Column(String, primary_key=True, index=True)  # userId (email/uid)
     name = Column(String, nullable=False)
-    branch = Column(String, nullable=True)
-    year = Column(String, nullable=True)
-    avatar = Column(String, nullable=True)  # image URL/path
+    branch = Column(String)
+    year = Column(String)
 
-    # ✔ reverse relations (optional)
+    avatar = Column(String)  # boy/girl avatar path or URL
+
+    # 🏷️ Personality / preference tags
+    personality = Column(String)
+    place = Column(String)
+    drink = Column(String)
+    sports = Column(String)
+    mindset = Column(String)
+    cgpa = Column(String)
+
+    # connections
     sent_hearts = relationship("Heart", foreign_keys="Heart.senderId", backref="sender_profile")
     received_hearts = relationship("Heart", foreign_keys="Heart.receiverId", backref="receiver_profile")
+
 
 
 # ---------- HEART MODEL ----------

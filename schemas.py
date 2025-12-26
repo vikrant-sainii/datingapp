@@ -20,12 +20,12 @@ class ProfileBase(BaseModel):
     branch: str
     year: str
     avatar: Optional[str] = None
-    personality: Optional[str] = ""
-    place: Optional[str] = ""
-    drink: Optional[str] = ""
-    sports: Optional[str] = ""
-    mindset: Optional[str] = ""
-    cgpa: Optional[str] = ""
+    personality: Optional[str] = None
+    place: Optional[str] = None
+    drink: Optional[str] = None
+    sports: Optional[str] = None
+    mindset: Optional[str] = None
+    cgpa: Optional[str] = None
 
 
 class ProfileCreate(ProfileBase):
