@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum,Text
 from sqlalchemy.orm import relationship
 from database import Base
 import enum, datetime
+
 
 class HeartStatus(str, enum.Enum):
     pending = "pending"
@@ -23,3 +24,12 @@ class Heart(Base):
     receiverId = Column(String, ForeignKey("profiles.id"))
     status = Column(Enum(HeartStatus), default=HeartStatus.pending)
     sentAt = Column(DateTime, default=datetime.datetime.utcnow)
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    roomId = Column(String, primary_key=True)
+    senderId = Column(String)
+    receiverId = Column(String)
+    text = Column(Text)
+    time = Column(DateTime, default=datetime.utcnow)

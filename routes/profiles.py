@@ -1,22 +1,27 @@
+# routes/profiles.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from database import get_db
+from schemas import ProfileCreate, ProfileOut
 from models import Profile
 
-router = APIRouter(prefix="/profiles")
+router = APIRouter(prefix="/profiles", tags=["Profiles"])
 
-def db():
-    db = SessionLocal()
-    try: yield db
-    finally: db.close()
-
-@router.post("/")
-def save_profile(id: str, name: str, branch: str, year: str, avatar: str, db: Session = Depends(db)):
-    profile = Profile(id=id, name=name, branch=branch, year=year, avatar=avatar)
-    db.merge(profile)
+@router.post("/", response_model=ProfileOut)
+def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
+    p = Profile(**profile.dict())
+    db.add(p)
     db.commit()
-    return {"saved": id}
+    db.refresh(p)
+    return p
 
-@router.get("/{id}")
-def get_profile(id: str, db: Session = Depends(db)):
-    return db.query(Profile).filter(Profile.id == id).first()
+@router.get("/{user_id}", response_model=ProfileOut)
+def get_profile(user_id: str, db: Session = Depends(get_db)):
+    p = db.query(Profile).filter(Profile.id == user_id).first()
+    if not p:
+        return {"error": "Profile not found"}
+    return p
+
+@router.get("/")
+def list_profiles(db: Session = Depends(get_db)):
+    return db.query(Profile).all()
