@@ -5,6 +5,7 @@ from database import Base, engine
 from routes.profiles import router as profiles_router
 from routes.hearts import router as hearts_router
 from routes.chats import router as chats_router  # optional now
+from models import Profile, Heart, ChatMessage, HeartStatus
 
 Base.metadata.create_all(bind=engine)
 

@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas import ProfileCreate, ProfileOut
 from models import Profile
+from schemas import ProfileCreate, ProfileOut
 
 router = APIRouter(prefix="/profiles", tags=["Profiles"])
 
