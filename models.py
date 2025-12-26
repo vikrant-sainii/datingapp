@@ -38,8 +38,7 @@ class Heart(Base):
     senderId = Column(String, ForeignKey("profiles.id"))
     receiverId = Column(String, ForeignKey("profiles.id"))
     status = Column(Enum(HeartStatus), default=HeartStatus.pending)
-    sentAt = Column(DateTime, default=datetime.timezone.utc)
-
+    sentAt = Column(DateTime, default=datetime.utcnow)
 
 # ---------- MUTUAL MATCH MODEL ----------
 # When userA accepts userB → both get a row here.
@@ -49,8 +48,7 @@ class Mutual(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     userA = Column(String, ForeignKey("profiles.id"))
     userB = Column(String, ForeignKey("profiles.id"))
-    matchedAt = Column(DateTime, default=datetime.timezone.utc)
-
+    matchedAt = Column(DateTime, default=datetime.utcnow)
 
 # ---------- CHAT MODEL ----------
 class ChatMessage(Base):
@@ -61,4 +59,4 @@ class ChatMessage(Base):
     senderId = Column(String, ForeignKey("profiles.id"))
     receiverId = Column(String, ForeignKey("profiles.id"))
     text = Column(Text, nullable=False)
-    time = Column(DateTime, default=datetime.timezone.utc)
+    time = Column(DateTime, default=datetime.utcnow)
