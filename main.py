@@ -1,15 +1,19 @@
 from fastapi import FastAPI
 from database import Base, engine
-from routes import profiles, hearts, chats
 
-app = FastAPI()
+# Correct router imports
+from routes.profiles import router as profiles_router
+from routes.hearts import router as hearts_router
+from routes.chats import router as chats_router  # optional now
 
 Base.metadata.create_all(bind=engine)
 
-app.include_router(profiles.router, prefix="/profiles")
-app.include_router(hearts.router, prefix="/hearts")
-app.include_router(chats.router, prefix="/chats")
+app = FastAPI()
+
+app.include_router(profiles_router, prefix="/profiles", tags=["Profiles"])
+app.include_router(hearts_router, prefix="/hearts", tags=["Hearts"])
+app.include_router(chats_router, prefix="/chats", tags=["Chats"])  # optional
 
 @app.get("/")
 def home():
-    return {"message": "🚀 Backend running!"}
+    return {"status": "API Running 🚀"}
