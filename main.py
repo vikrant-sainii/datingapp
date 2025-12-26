@@ -1,13 +1,15 @@
 from fastapi import FastAPI
 from database import Base, engine
-from routes import profiles, hearts
+from routes import profiles, hearts, chats
 
-Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
-app.include_router(profiles.router)
-app.include_router(hearts.router)
+Base.metadata.create_all(bind=engine)
+
+app.include_router(profiles.router, prefix="/profiles")
+app.include_router(hearts.router, prefix="/hearts")
+app.include_router(chats.router, prefix="/chats")
 
 @app.get("/")
 def home():
-    return {"status": "API is running 🚀"}
+    return {"message": "🚀 Backend running!"}
