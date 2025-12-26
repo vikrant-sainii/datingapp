@@ -1,36 +1,33 @@
-# routes/chat.py
+# routes/chats.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from models import ChatMessage, Mutual
 from database import get_db
-from models import ChatMessage
-from schemas import ChatMessageCreate, ChatMessageOut
 
-router = APIRouter(prefix="/chat", tags=["Chat"])
+router = APIRouter(prefix="/chats", tags=["Chats"])
 
-# Generate consistent chat room id: userA_userB
-def chat_room(id1: str, id2: str):
-    return "_".join(sorted([id1, id2]))
+# Send Chat Message
+@router.post("/send")
+def send_message(senderId: str, receiverId: str, text: str, db: Session = Depends(get_db)):
+    # Check if users are mutual
+    is_mutual = db.query(Mutual).filter(
+        ((Mutual.userA == senderId) & (Mutual.userB == receiverId)) |
+        ((Mutual.userA == receiverId) & (Mutual.userB == senderId))
+    ).first()
 
+    if not is_mutual:
+        return {"error": "Not matched yet. Chat locked 🔒"}
 
-# 📌 Send a chat message (only for mutuals)
-@router.post("/send", response_model=ChatMessageOut)
-def send_message(message: ChatMessageCreate, db: Session = Depends(get_db)):
-    room_id = chat_room(message.senderId, message.receiverId)
-    msg = ChatMessage(
-        roomId=room_id,
-        senderId=message.senderId,
-        receiverId=message.receiverId,
-        text=message.text,
-    )
-    db.add(msg)
+    roomId = "_".join(sorted([senderId, receiverId]))
+    message = ChatMessage(roomId=roomId, senderId=senderId, receiverId=receiverId, text=text)
+    db.add(message)
     db.commit()
-    db.refresh(msg)
-    return msg
+    db.refresh(message)
 
+    return {"message": "Message sent 💬"}
 
-# 📌 Get all messages between two users
-@router.get("/{user1}/{user2}", response_model=list[ChatMessageOut])
-def get_chat_history(user1: str, user2: str, db: Session = Depends(get_db)):
-    room_id = chat_room(user1, user2)
-    messages = db.query(ChatMessage).filter(ChatMessage.roomId == room_id).all()
-    return messages
+# Get Chat History
+@router.get("/{userA}/{userB}")
+def get_chat(userA: str, userB: str, db: Session = Depends(get_db)):
+    roomId = "_".join(sorted([userA, userB]))
+    return db.query(ChatMessage).filter(ChatMessage.roomId == roomId).all()
