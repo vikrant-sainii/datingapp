@@ -76,27 +76,8 @@ def add_heart(senderId: str, receiverId: str, db: Session = Depends(get_db)):
     data["sent"][senderId].append(heart_obj)
     data["received"][receiverId].append(copy.deepcopy(heart_obj))
 
-    # 💞 check mutual
-    reverse = any(h["receiverId"] == senderId for h in data["sent"].get(receiverId, []))
-    if reverse:
-        # remove pending on both sides
-        data["sent"][senderId] = [h for h in data["sent"][senderId] if h["receiverId"] != receiverId]
-        data["sent"][receiverId] = [h for h in data["sent"][receiverId] if h["receiverId"] != senderId]
-        data["received"][senderId] = [h for h in data["received"][senderId] if h["senderId"] != receiverId]
-        data["received"][receiverId] = [h for h in data["received"][receiverId] if h["senderId"] != senderId]
-
-        # add mutual pair
-        if receiverId not in data["mutual"][senderId]:
-            data["mutual"][senderId].append(receiverId)
-        if senderId not in data["mutual"][receiverId]:
-            data["mutual"][receiverId].append(senderId)
-
-        save_data(db, data, record)
-        return {"message": "💞 MATCHED!!", "mutual": True}
-
     save_data(db, data, record)
     return {"message": "Heart sent ❤️", "mutual": False}
-
 
 
 # ---------------------------------------------------------

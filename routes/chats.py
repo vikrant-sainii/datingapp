@@ -39,6 +39,25 @@ def send_message(senderId: str, receiverId: str, text: str, db: Session = Depend
 # ---------------------------------------------------------
 @router.get("/{userA}/{userB}")
 def get_chat(userA: str, userB: str, db: Session = Depends(get_db)):
+    data, _ = get_state(db)
+
+    if userB not in data["mutual"].get(userA, []):
+        raise HTTPException(403, "Chat locked 🔒 Not matched yet")
+
     roomId = "_".join(sorted([userA, userB]))
-    msgs = db.query(ChatMessage).filter(ChatMessage.roomId == roomId).all()
-    return msgs
+    msgs = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.roomId == roomId)
+        .order_by(ChatMessage.time.asc())
+        .all()
+    )
+    return [
+        {
+            "id": m.id,
+            "senderId": m.senderId,
+            "receiverId": m.receiverId,
+            "text": m.text,
+            "time": m.time.isoformat(),
+        }
+        for m in msgs
+    ]
