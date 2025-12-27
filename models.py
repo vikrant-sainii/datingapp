@@ -49,13 +49,20 @@ class ChatMessage(Base):
     time = Column(DateTime, default=lambda: datetime.utcnow())
 
 
+from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy import JSON
+
 # ---------- JSON STORE IN DATABASE FOR HEART/MUTUAL MVP ----------
 class AppState(Base):
     __tablename__ = "app_state"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    hearts = Column(JSON, nullable=False, default=lambda: {
-        "sent": {},
-        "received": {},
-        "mutual": {}
-    })
+    hearts = Column(
+        MutableDict.as_mutable(JSON),   # 🔥 needed so changes persist
+        nullable=False,
+        default=lambda: {
+            "sent": {},
+            "received": {},
+            "mutual": {}
+        }
+    )
