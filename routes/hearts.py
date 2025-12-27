@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from fastapi import APIRouter, Depends
 from database import get_db
+import copy
+
 
 def load_data(db: Session):
     record = db.query(AppState).first()
@@ -49,7 +51,7 @@ def add_heart(senderId: str, receiverId: str, db: Session = Depends(get_db)):
     }
 
     data["sent"][senderId].append(heart_obj)
-    data["received"][receiverId].append(heart_obj)
+    data["received"][receiverId].append(copy.deepcopy(heart_obj))
 
     # 💞 check mutual
     reverse = any(h["receiverId"] == senderId for h in data["sent"].get(receiverId, []))
