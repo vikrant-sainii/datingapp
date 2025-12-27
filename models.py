@@ -1,32 +1,19 @@
-# models.py
-from sqlalchemy import (
-    Column, String, Integer, DateTime, ForeignKey, Enum, Text
-)
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text, Boolean, JSON
 from sqlalchemy.orm import relationship
 from database import Base
-import enum
 from datetime import datetime
 
 
-# ---------- ENUMS ----------
-class HeartStatus(str, enum.Enum):
-    pending = "pending"
-    accepted = "accepted"
-    declined = "declined"
-
-
-# ---------- PROFILE MODEL (FULL) ----------
+# ---------- PROFILE TABLE ----------
 class Profile(Base):
     __tablename__ = "profiles"
 
-    id = Column(String, primary_key=True, index=True)  # userId (email/uid)
+    id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     branch = Column(String)
     year = Column(String)
+    avatar = Column(String)
 
-    avatar = Column(String)  # boy/girl avatar path or URL
-
-    # 🏷️ Personality / preference tags
     personality = Column(String)
     place = Column(String)
     drink = Column(String)
@@ -34,39 +21,41 @@ class Profile(Base):
     mindset = Column(String)
     cgpa = Column(String)
 
-    # connections
-    sent_hearts = relationship("Heart", foreign_keys="Heart.senderId", backref="sender_profile")
-    received_hearts = relationship("Heart", foreign_keys="Heart.receiverId", backref="receiver_profile")
+    # relationships for future
+    sent_hearts = relationship("Heart", foreign_keys="Heart.senderId")
+    received_hearts = relationship("Heart", foreign_keys="Heart.receiverId")
 
 
-
-# ---------- HEART MODEL ----------
+# ---------- HEART TABLE (NOT USED YET, FOR FUTURE SCALE) ----------
 class Heart(Base):
     __tablename__ = "hearts"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    senderId = Column(String, ForeignKey("profiles.id"))
-    receiverId = Column(String, ForeignKey("profiles.id"))
-    status = Column(Enum(HeartStatus), default=HeartStatus.pending)
-    sentAt = Column(DateTime, default=datetime.utcnow)
+    senderId = Column(String, ForeignKey("profiles.id"), nullable=False)
+    receiverId = Column(String, ForeignKey("profiles.id"), nullable=False)
+    ispending = Column(Boolean, default=True)
+    sentAt = Column(DateTime, default=lambda: datetime.utcnow())
 
-# ---------- MUTUAL MATCH MODEL ----------
-# When userA accepts userB → both get a row here.
-class Mutual(Base):
-    __tablename__ = "mutuals"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    userA = Column(String, ForeignKey("profiles.id"))
-    userB = Column(String, ForeignKey("profiles.id"))
-    matchedAt = Column(DateTime, default=datetime.utcnow)
-
-# ---------- CHAT MODEL ----------
+# ---------- CHAT TABLE (Future real chat) ----------
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    roomId = Column(String, index=True)  # generated as sorted: "userA_userB"
+    roomId = Column(String, index=True)
     senderId = Column(String, ForeignKey("profiles.id"))
     receiverId = Column(String, ForeignKey("profiles.id"))
     text = Column(Text, nullable=False)
-    time = Column(DateTime, default=datetime.utcnow)
+    time = Column(DateTime, default=lambda: datetime.utcnow())
+
+
+# ---------- JSON STORE IN DATABASE FOR HEART/MUTUAL MVP ----------
+class AppState(Base):
+    __tablename__ = "app_state"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    hearts = Column(JSON, nullable=False, default=lambda: {
+        "sent": {},
+        "received": {},
+        "mutual": {}
+    })

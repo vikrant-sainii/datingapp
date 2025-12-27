@@ -1,3 +1,5 @@
+from models import AppState
+from sqlalchemy.orm import Session
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
@@ -30,3 +32,15 @@ app.include_router(chats_router)
 @app.get("/")
 def home():
     return {"message": "🚀 Backend Running"}
+
+
+@app.on_event("startup")
+def init_appstate():
+    # Auto-create JSON state if missing
+    db: Session = Session(bind=engine)
+    record = db.query(AppState).first()
+    if not record:
+        db.add(AppState(hearts={"sent":{}, "received":{}, "mutual":{}}))
+        db.commit()
+        print("📌 AppState initialized.")
+    db.close()

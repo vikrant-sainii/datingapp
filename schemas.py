@@ -1,16 +1,8 @@
 # schemas.py
 from pydantic import BaseModel
 from typing import Optional
-from enum import Enum
 from datetime import datetime
 
-# ---------------------------
-# ❤️ Heart Status Enum
-# ---------------------------
-class HeartStatus(str, Enum):
-    pending = "pending"
-    accepted = "accepted"
-    declined = "declined"
 
 # ---------------------------
 # 👤 PROFILE SCHEMAS
@@ -29,35 +21,26 @@ class ProfileBase(BaseModel):
 
 
 class ProfileCreate(ProfileBase):
-    id: str   # we assign ID from frontend for now (later from auth system)
+    id: str  # provided from frontend
 
 
 class ProfileOut(ProfileBase):
     id: str
 
     class Config:
-        orm_mode = True  # <- VERY IMPORTANT
+        orm_mode = True
+
 
 
 # ---------------------------
-# ❤️ HEART SCHEMAS
+# ❤️ HEART SCHEMAS (Updated for JSON MVP)
 # ---------------------------
-class HeartBase(BaseModel):
+class HeartOut(BaseModel):
     senderId: str
     receiverId: str
-    status: HeartStatus = HeartStatus.pending
-
-
-class HeartCreate(HeartBase):
-    pass
-
-
-class HeartOut(HeartBase):
-    id: int
+    ispending: bool
     sentAt: datetime
 
-    class Config:
-        orm_mode = True
 
 
 # ---------------------------
@@ -70,7 +53,6 @@ class ChatMessageBase(BaseModel):
 class ChatMessageCreate(ChatMessageBase):
     senderId: str
     receiverId: str
-    roomId: str
 
 
 class ChatMessageOut(ChatMessageBase):
