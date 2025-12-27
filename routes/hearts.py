@@ -122,15 +122,15 @@ def add_mutual(userA: str, userB: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------
 @router.get("/{userId}/sent")
 def get_sent_list(userId: str, db: Session = Depends(get_db)):
-    data, _ = load_data(db)
+    data= load_data(db)
     return {"sent": data["sent"].get(userId, [])}
 
 @router.get("/{userId}/received")
 def get_received_list(userId: str, db: Session = Depends(get_db)):
-    data, _ = load_data(db)
+    data=load_data(db)
     return {"received": data["received"].get(userId, [])}
 
 @router.get("/{userId}/mutual")
 def get_mutual_list(userId: str, db: Session = Depends(get_db)):
-    data, _ = load_data(db)
+    data=load_data(db)
     return {"mutual": data["mutual"].get(userId, [])}
