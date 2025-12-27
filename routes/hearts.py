@@ -139,6 +139,10 @@ def add_mutual(userA: str, userB: str, db: Session = Depends(get_db)):
     if userA not in data["mutual"][userB]:
         data["mutual"][userB].append(userA)
 
+    # 🧹 Remove pending hearts after match
+    remove_heart(userA, userB, db)
+    remove_heart(userB, userA, db)  # just to be safe from both directions
+
     save_data(db, data, record)
     return {"message": "Match saved 💞", "pair": [userA, userB]}
 
