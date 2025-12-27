@@ -4,6 +4,7 @@ from database import get_db
 from fastapi import APIRouter, Depends
 from database import get_db
 import copy
+from sqlalchemy.orm.attributes import flag_modified
 
 
 def load_data(db: Session):
@@ -17,6 +18,7 @@ def load_data(db: Session):
 
 def save_data(db: Session, data, record):
     record.hearts = data
+    flag_modified(record, "hearts")
     db.commit()
     db.refresh(record)
 
