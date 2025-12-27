@@ -21,6 +21,22 @@ def save_data(db: Session, data, record):
     flag_modified(record, "hearts")
     db.commit()
     db.refresh(record)
+def can_we_send_heart(data, senderId, receiverId):
+    # 1️⃣ If mutual already exists
+    if receiverId in data["mutual"].get(senderId, []):
+        return False, "Already matched 💞"
+
+    # 2️⃣ If pending request already exists
+    for h in data["sent"].get(senderId, []):
+        if h["receiverId"] == receiverId and h["ispending"]:
+            return False, "Pending request already exists ⏳"
+
+    # 3️⃣ If there’s a pending request from the other side (you should accept, not send)
+    for h in data["sent"].get(receiverId, []):
+        if h["receiverId"] == senderId and h["ispending"]:
+            return False, "They already sent you a request. Accept it instead ❤️"
+
+    return True, "Allowed"
 
 
 
@@ -38,6 +54,11 @@ def add_heart(senderId: str, receiverId: str, db: Session = Depends(get_db)):
     data["received"].setdefault(receiverId, [])
     data["mutual"].setdefault(senderId, [])
     data["mutual"].setdefault(receiverId, [])
+
+    # 🚫 Check if sending is allowed
+    allowed, msg = can_we_send_heart(data, senderId, receiverId)
+    if not allowed:
+        return {"error": msg}
 
     # check duplicate pending
     for h in data["sent"][senderId]:
